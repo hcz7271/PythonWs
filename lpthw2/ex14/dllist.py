@@ -1,71 +1,79 @@
-class DoubleLinkedListNode(object):
-    def __init__(self, value, nxt, prev):
-        self.value = value
-        self.next = nxt
-        self.prev = prev
+class _DoubleLinkedList:
+    class _Node:
+        __slots__ = "_value", "_prev", "_next"
 
-    def __repr__(self):
-        nval = self.next and self.next.value or None
-        pval = self.prev and self.prev.value or None
-        return f"[{self.value}, {repr(nval)}, {repr(pval)}]"
+        def __init__(self, _value, _prev, _next):
+            self._value = _value
+            self._prev = _prev
+            self._next = _next
 
+        def __repr__(self):
+            pval = self._prev and self._prev._value or None
+            nval = self._next and self._next._value or None
+            return f"[{self._value}, {repr(pval)}, {repr(nval)}]"
 
-class DoubleLinkedList(object):
     def __init__(self):
-        self.begin = None
-        self.end = None
+        self._begin = None
+        self._end = None
+        self._size = 0
+
+    def __len__(self):
+        return self._size
+
+    def is_empty(self):
+        return self._size == 0
 
     def _invariant(self):
-        if self.count() == 0:
-            assert (self.begin == None) and (self.end == None)
+        if self.is_empty():
+            assert (self._begin == None) and (self._end == None)
         else:
-            if self.count() == 1:
-                assert self.begin == self.end
-            assert (self.begin.prev == None) and (self.end.next == None)
+            if self.__len__() == 1:
+                assert self._begin == self._end
+            assert (self._begin._prev == None) and (self._end._next == None)
 
     def push(self, obj):
-        if self.end:
-            node = DoubleLinkedListNode(obj, None, self.end)
-            self.end.next = node
-            self.end = node
+        if self._end:
+            node = self._Node(obj, self._end, None)
+            self._end._next = node
+            self._end = node
         else:
-            self.begin = DoubleLinkedListNode(obj, None, None)
-            self.end = self.begin
+            self._begin = self._Node(obj, None, None)
+            self._end = self._begin
 
     def pop(self):
-        if self.end:
+        if self._end:
             # get the last node
-            node = self.end
+            node = self._end
 
-            if self.end == self.begin:
+            if self._end == self._begin:
                 # last node, kill them both
-                self.end = None
-                self.begin = None
+                self._end = None
+                self._begin = None
             else:
-                # not last, detach and move end
-                self.end = node.prev
-                self.end.next = None
+                # not last, detach and move _end
+                self._end = node._prev
+                self._end._next = None
 
-                if self.end == self.begin:
-                    # we have only one node left, make begin and end same
-                    self.begin.next = None
+                if self._end == self._begin:
+                    # we have only one node left, make _begin and _end same
+                    self._begin._next = None
 
-            return node.value
+            return node._value
         else:
             return None
 
     def unshift(self):
-        if self.begin:
-            node = self.begin
+        if self._begin:
+            node = self._begin
 
-            if self.end == self.begin:
-                self.end = None
-                self.begin = None
+            if self._end == self._begin:
+                self._end = None
+                self._begin = None
             else:
-                self.begin = node.next
-                self.begin.prev = None
+                self._begin = node._next
+                self._begin._prev = None
 
-            return node.value
+            return node._value
         else:
             return None
 
@@ -73,65 +81,55 @@ class DoubleLinkedList(object):
         self.push(obj)
 
     def detach_node(self, node):
-        if node == self.end:
+        if node == self._end:
             # only node or last node
             self.pop()
-        elif node == self.begin:
+        elif node == self._begin:
             # first node
             self.unshift()
         else:
             # in the middle
-            prev = node.prev
-            nxt = node.next
-            prev.next = nxt
-            nxt.prev = prev
+            _prev = node._prev
+            nxt = node._next
+            _prev._next = nxt
+            nxt._prev = _prev
 
     def remove(self, obj):
-        node = self.begin
+        node = self._begin
         count = 0
 
         while node:
-            if node.value == obj:
+            if node._value == obj:
                 self.detach_node(node)
                 return count
             else:
                 count += 1
-                node = node.next
+                node = node._next
 
         return -1
 
     def first(self):
-        return self.begin and self.begin.value or None
+        return self._begin and self._begin._value or None
 
     def last(self):
-        return self.end and self.end.value or None
-
-    def count(self):
-        node = self.begin
-        count = 0
-
-        while node:
-            node = node.next
-            count += 1
-
-        return count
+        return self._end and self._end._value or None
 
     def get(self, index):
-        node = self.begin
+        node = self._begin
         i = 0
         while node:
             if i == index:
-                return node.value
+                return node._value
             else:
                 i += 1
-                node = node.next
+                node = node._next
 
         return None
 
     def dump(self, mark="----"):
-        node = self.begin
+        node = self._begin
         print(mark)
         while node:
-            print(node, " ", end="")
-            node = node.next
+            print(node, " ", _end="")
+            node = node._next
         print()
