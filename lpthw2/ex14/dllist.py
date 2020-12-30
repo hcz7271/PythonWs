@@ -1,4 +1,6 @@
-class _DoubleLinkedList:
+class _DoubleLinkedListBase:
+    """A base class providing a doubly linked list representation."""
+
     class _Node:
         __slots__ = "_value", "_prev", "_next"
 
@@ -10,112 +12,121 @@ class _DoubleLinkedList:
         def __repr__(self):
             pval = self._prev and self._prev._value or None
             nval = self._next and self._next._value or None
-            return f"[{self._value}, {repr(pval)}, {repr(nval)}]"
+            return f"[{repr(pval)}|{self._value}|{repr(nval)}]"
 
     def __init__(self):
-        self._begin = None
-        self._end = None
-        self._size = 0
+        """Sentinel. Create an empty list."""
+        self._header = self._Node(None, None, None)
+        self._trailer = self._Node(None, None, None)
+        self._header._next = self._trailer  # trailer is after header
+        self._trailer._prev = self._header  # header is before trailer
+        self._size = 0  # number of elements
 
     def __len__(self):
+        """Return the number of elements in the list."""
         return self._size
 
     def is_empty(self):
+        """Return True if list is empty."""
         return self._size == 0
 
+    def _insert_between(self, obj, predecessor, successor):
+        """Add value obj between two existing nodes."""
+        newNode = self._Node(obj, predecessor, successor)  # linked to neighbors
+        predecessor._next = newNode
+        successor._prev = newNode
+        self._size += 1
+
+    def _delete_node(self, node):
+        """Delete nonsentinel node from the lis and return its value."""
+        predecessor = node._prev
+        successor = node._next
+        predecessor._next = successor
+        successor._prev = predecessor
+        self._size -= 1
+        value = node._value  # record deleted element
+        node._prev = node._next = node._value = None  # deprecate node
+        return value  # return deleted element
+
+
+class DoubleLinkedDeque(_DoubleLinkedListBase):  # note the use of interitance
+    """Double-ended queue implementation based on a doubly linked list."""
+
     def _invariant(self):
+        # the value of header sentinel and trailer sentinel must be None here
+        # prev of header sentinel and next of trailer sentinel must also be None here
+        assert (self._header._prev == None) and (self._header._value == None)
+        assert (self._trailer._next == None) and (self._trailer._value == None)
         if self.is_empty():
-            assert (self._begin == None) and (self._end == None)
+            assert (self._header._next == self._trailer) and (
+                self._trailer._prev == self._header
+            )
         else:
             if self.__len__() == 1:
-                assert self._begin == self._end
-            assert (self._begin._prev == None) and (self._end._next == None)
+                assert self._header._next == self._trailer._prev
 
     def push(self, obj):
-        if self._end:
-            node = self._Node(obj, self._end, None)
-            self._end._next = node
-            self._end = node
-        else:
-            self._begin = self._Node(obj, None, None)
-            self._end = self._begin
+        """Insert_last. Add an element to the back of the deque."""
+        self._insert_between(obj, self._trailer._prev, self._trailer)  # before trailer
 
     def pop(self):
-        if self._end:
-            # get the last node
-            node = self._end
-
-            if self._end == self._begin:
-                # last node, kill them both
-                self._end = None
-                self._begin = None
-            else:
-                # not last, detach and move _end
-                self._end = node._prev
-                self._end._next = None
-
-                if self._end == self._begin:
-                    # we have only one node left, make _begin and _end same
-                    self._begin._next = None
-
-            return node._value
+        """Delete last. Remove and return the element from the back of the deque."""
+        if self.is_empty():
+            result = None
         else:
-            return None
-
-    def unshift(self):
-        if self._begin:
-            node = self._begin
-
-            if self._end == self._begin:
-                self._end = None
-                self._begin = None
-            else:
-                self._begin = node._next
-                self._begin._prev = None
-
-            return node._value
-        else:
-            return None
+            result = self._delete_node(self._trailer._prev)
+        return result
 
     def shift(self, obj):
-        self.push(obj)
+        """Insert first. Add an element to the front of the deque."""
+        self._insert_between(obj, self._header, self._header._next)
+
+    def unshift(self):
+        """Delete first. Remove and return the element from the front of the deque."""
+        if self.is_empty():
+            result = None
+        else:
+            result = self._delete_node(self._header._next)
+        return result
 
     def detach_node(self, node):
-        if node == self._end:
-            # only node or last node
-            self.pop()
-        elif node == self._begin:
-            # first node
-            self.unshift()
-        else:
-            # in the middle
-            _prev = node._prev
-            nxt = node._next
-            _prev._next = nxt
-            nxt._prev = _prev
+        self._delete_node(node)
+        return None
 
     def remove(self, obj):
-        node = self._begin
-        count = 0
+        if self.is_empty():
+            return -1
+        else:
+            node = self._header._next
+            count = 0
 
-        while node:
-            if node._value == obj:
-                self.detach_node(node)
-                return count
-            else:
-                count += 1
-                node = node._next
-
-        return -1
+            while node != self._trailer:
+                if node._value == obj:
+                    self._delete_node(node)
+                    return count
+                else:
+                    count += 1
+                    node = node._next
 
     def first(self):
-        return self._begin and self._begin._value or None
+        """Return (but do not remove) the element at the front of the deque."""
+        if self.is_empty():
+            result = None
+        else:
+            result = self._header._next._value
+        return result
 
     def last(self):
-        return self._end and self._end._value or None
+        """Return (but do not remove) the element at the back of the deque."""
+        if self.is_empty():
+            result = None
+        else:
+            result = self._trailer._prev._value
+        return result
 
     def get(self, index):
-        node = self._begin
+        """Get the value at index."""
+        node = self._header._next
         i = 0
         while node:
             if i == index:
@@ -127,9 +138,10 @@ class _DoubleLinkedList:
         return None
 
     def dump(self, mark="----"):
-        node = self._begin
+        """Debugging function that dumps the contents of the list."""
+        node = self._header._next
         print(mark)
-        while node:
-            print(node, " ", _end="")
+        while node != self._trailer:
+            print(node, " ", end="")
             node = node._next
         print()
