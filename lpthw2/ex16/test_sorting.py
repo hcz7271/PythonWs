@@ -1,3 +1,4 @@
+import pytest
 import sorting
 from dllist import DoubleLinkedDeque
 from random import randint
@@ -13,8 +14,8 @@ def random_list(count: int) -> object:
 
 
 def is_sorted(numbers: object) -> bool:
-    node = numbers._header
-    while node and node._next:
+    node = numbers._header._next
+    while node._next._value != None:
         if node._value > node._next._value:
             return False
         else:
@@ -26,3 +27,12 @@ def test_bubble_sort():
     numbers = random_list(max_numbers)
     sorting.bubble_sort(numbers)
     assert is_sorted(numbers)
+
+
+if __name__ == "__main__":
+    print("testing")
+    n1 = random_list(max_numbers)
+    n1.show_in_list()
+    sorting.bubble_sort(n1)
+    n1.show_in_list()
+    pytest.main()

@@ -5,9 +5,7 @@ def bubble_sort(numbers: object):
         is_sorted = True
         # comparing 2 at a time, skipping ahead
         node = numbers._header._next
-        numbers.dump()
-        i = 1
-        while node._next != numbers._trailer:
+        while node._next._value != None:
             # loop through comparing node to the next
             if node._value > node._next._value:
                 # if the next is greater, then we need to swap
@@ -15,9 +13,6 @@ def bubble_sort(numbers: object):
                 # oops, looks like we have to scan again
                 is_sorted = False
             node = node._next
-            print(i, node._value, node._next._value, end="")
-            print()
-            i += 1
 
         # this is reset at the top but if we never swapped, it'ssorted
         if is_sorted:

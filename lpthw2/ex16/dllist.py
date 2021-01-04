@@ -145,3 +145,11 @@ class DoubleLinkedDeque(_DoubleLinkedListBase):  # note the use of interitance
             print(node, " ", end="")
             node = node._next
         print()
+
+    def show_in_list(self):
+        ls = []
+        node = self._header._next
+        while node != self._trailer:
+            ls.append(node._value)
+            node = node._next
+        print(ls)
