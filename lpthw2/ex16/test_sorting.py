@@ -37,16 +37,3 @@ def test_merge_sort():
     sorting.merge_sort(numbers)
 
     assert is_sorted(numbers)
-
-
-def test_quick_sort():
-    numbers = random_list(max_numbers)
-
-    sorting.quick_sort(numbers, 0, numbers.count() - 1)
-
-    assert is_sorted(numbers)
-
-
-if __name__ == "__main__":
-    n1 = random_list(max_numbers)
-    n1.dump()
