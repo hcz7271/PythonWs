@@ -1,38 +1,52 @@
-import pytest
 import sorting
-from dllist import DoubleLinkedDeque
+from dllist import DoubleLinkedList
 from random import randint
 
-max_numbers = 5
+max_numbers = 10
 
 
-def random_list(count: int) -> object:
-    numbers = DoubleLinkedDeque()
+def random_list(count):
+    numbers = DoubleLinkedList()
     for i in range(count, 0, -1):
         numbers.shift(randint(0, 10000))
     return numbers
 
 
-def is_sorted(numbers: object) -> bool:
-    node = numbers._header._next
-    while node._next._value != None:
-        if node._value > node._next._value:
+def is_sorted(numbers):
+    node = numbers.begin
+    while node and node.next:
+        if node.value > node.next.value:
             return False
         else:
-            node = node._next
+            node = node.next
+
     return True
 
 
 def test_bubble_sort():
     numbers = random_list(max_numbers)
+
     sorting.bubble_sort(numbers)
+
+    assert is_sorted(numbers)
+
+
+def test_merge_sort():
+    numbers = random_list(max_numbers * 5)
+
+    sorting.merge_sort(numbers)
+
+    assert is_sorted(numbers)
+
+
+def test_quick_sort():
+    numbers = random_list(max_numbers)
+
+    sorting.quick_sort(numbers, 0, numbers.count() - 1)
+
     assert is_sorted(numbers)
 
 
 if __name__ == "__main__":
-    print("testing")
     n1 = random_list(max_numbers)
-    n1.show_in_list()
-    sorting.bubble_sort(n1)
-    n1.show_in_list()
-    pytest.main()
+    n1.dump()
